@@ -12,14 +12,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Updated to Node 24 due to Node 20 deprecation on GitHub runners
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '24'
-          cache: 'npm'
-          # CHANGE THIS PATH if your package-lock.json is inside a subfolder like 'keyhold-apk-project/'
-          cache-dependency-path: './package-lock.json' 
+          # Removed the 'cache: npm' line temporarily to prevent lockfile conflicts
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -27,25 +24,34 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      # Automatically caches Gradle wrappers and dependencies to prevent slow network downloads
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      # Using 'npm install' instead of 'npm ci' if you don't have a rigid package-lock.json
+      # --yes auto-accepts any interactive project initialization prompts
       - name: Install dependencies
-        run: npm install
+        run: npm install --yes --no-audit --no-fund
 
       - name: Build web application
         run: npm run build --if-present
 
+      # --confirm auto-confirms any native Android installation prompts
       - name: Sync Capacitor Android
-        run: npx cap sync android
+        run: npx cap sync android --confirm
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x keyhold-apk-project/android/gradlew
-
+      # Speeds up Gradle by using multiple cores, caching configurations, and disabling heavy daemons
       - name: Build debug APK
         working-directory: keyhold-apk-project/android
-        run: ./gradlew clean assembleDebug --no-daemon
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug \
+            --no-daemon \
+            --parallel \
+            --configuration-cache \
+            --max-workers=$(nproc)
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
