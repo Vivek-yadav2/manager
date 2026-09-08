@@ -16,7 +16,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '24'
-          # Removed the 'cache: npm' line temporarily to prevent lockfile conflicts
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -24,25 +23,28 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # Automatically caches Gradle wrappers and dependencies to prevent slow network downloads
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      # --yes auto-accepts any interactive project initialization prompts
+      # Pointed NPM to the correct parent directory containing your package.json
       - name: Install dependencies
+        working-directory: keyhold-apk-project
         run: npm install --yes --no-audit --no-fund
 
+      # Pointed Web Build to the correct parent directory
       - name: Build web application
+        working-directory: keyhold-apk-project
         run: npm run build --if-present
 
-      # --confirm auto-confirms any native Android installation prompts
+      # Pointed Capacitor Sync to the correct parent directory
       - name: Sync Capacitor Android
+        working-directory: keyhold-apk-project
         run: npx cap sync android --confirm
 
-      # Speeds up Gradle by using multiple cores, caching configurations, and disabling heavy daemons
+      # Compile the optimized native Android app binaries
       - name: Build debug APK
         working-directory: keyhold-apk-project/android
         run: |
@@ -50,7 +52,6 @@ jobs:
           ./gradlew assembleDebug \
             --no-daemon \
             --parallel \
-            --configuration-cache \
             --max-workers=$(nproc)
 
       - name: Upload APK artifact
