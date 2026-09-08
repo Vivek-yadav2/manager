@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1B2430">
+<title>Keyhold — Tenant Manager</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ===================== DASHBOARD ===================== -->
+  <section class="view" id="view-dashboard">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow-ledger">Overview</p>
+        <h1 class="page-title">Keyhold</h1>
+      </div>
+      <button class="icon-btn" id="btn-theme" aria-label="Toggle theme">◐</button>
+    </header>
+
+    <div class="ledger-summary">
+      <div class="sum-row">
+        <span class="sum-label">Rent expected this month</span>
+        <span class="sum-value" id="sum-expected">₹0</span>
+      </div>
+      <div class="sum-row">
+        <span class="sum-label">Collected</span>
+        <span class="sum-value good" id="sum-collected">₹0</span>
+      </div>
+      <div class="sum-row">
+        <span class="sum-label">Pending</span>
+        <span class="sum-value bad" id="sum-pending">₹0</span>
+      </div>
+      <div class="sum-row muted">
+        <span class="sum-label">Tenants · Properties</span>
+        <span class="sum-value" id="sum-counts">0 · 0</span>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <h2>Due &amp; overdue</h2>
+    </div>
+    <div id="dashboard-due-list" class="tenant-list"></div>
+
+    <div class="empty-state" id="dashboard-empty" hidden>
+      <p class="empty-title">No tenants yet</p>
+      <p class="empty-body">Add your first tenant to start tracking rent and leases.</p>
+    </div>
+  </section>
+
+  <!-- ===================== TENANTS LIST ===================== -->
+  <section class="view" id="view-tenants" hidden>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow-ledger">Manage</p>
+        <h1 class="page-title">Tenants</h1>
+      </div>
+    </header>
+
+    <div class="search-row">
+      <input type="search" id="tenant-search" placeholder="Search by name or property" autocomplete="off">
+    </div>
+    <div class="filter-row" id="tenant-filters">
+      <button class="chip active" data-filter="all">All</button>
+      <button class="chip" data-filter="paid">Paid</button>
+      <button class="chip" data-filter="due">Due</button>
+      <button class="chip" data-filter="overdue">Overdue</button>
+    </div>
+
+    <div id="tenants-list" class="tenant-list"></div>
+    <div class="empty-state" id="tenants-empty" hidden>
+      <p class="empty-title">No matches</p>
+      <p class="empty-body">Try a different search or filter.</p>
+    </div>
+  </section>
+
+  <!-- ===================== TENANT DETAIL ===================== -->
+  <section class="view" id="view-tenant-detail" hidden>
+    <header class="topbar">
+      <button class="text-btn" data-back="tenants">‹ Tenants</button>
+      <button class="icon-btn" id="btn-edit-tenant" aria-label="Edit tenant">✎</button>
+    </header>
+
+    <div class="detail-head">
+      <div class="avatar" id="detail-avatar">?</div>
+      <div>
+        <h1 class="page-title" id="detail-name">—</h1>
+        <p class="detail-sub" id="detail-property">—</p>
+      </div>
+      <span class="status-pill" id="detail-status">—</span>
+    </div>
+
+    <div class="ledger-summary">
+      <div class="sum-row">
+        <span class="sum-label">Phone</span>
+        <span class="sum-value" id="detail-phone">—</span>
+      </div>
+      <div class="sum-row">
+        <span class="sum-label">Email</span>
+        <span class="sum-value" id="detail-email">—</span>
+      </div>
+      <div class="sum-row">
+        <span class="sum-label">ID proof</span>
+        <span class="sum-value" id="detail-id">—</span>
+      </div>
+      <div class="sum-row">
+        <span class="sum-label">Monthly rent</span>
+        <span class="sum-value" id="detail-rent">—</span>
+      </div>
+      <div class="sum-row">
+        <span class="sum-label">Security deposit</span>
+        <span class="sum-value" id="detail-deposit">—</span>
+      </div>
+      <div class="sum-row">
+        <span class="sum-label">Lease</span>
+        <span class="sum-value" id="detail-lease">—</span>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <h2>Payments</h2>
+      <button class="text-btn accent" id="btn-record-payment">+ Record payment</button>
+    </div>
+    <div id="detail-payments" class="payment-list"></div>
+
+    <div class="section-head">
+      <h2>Notes</h2>
+      <button class="text-btn accent" id="btn-add-note">+ Add note</button>
+    </div>
+    <div id="detail-notes" class="note-list"></div>
+
+    <button class="danger-link" id="btn-delete-tenant">Remove tenant</button>
+  </section>
+
+  <!-- ===================== ADD / EDIT TENANT FORM ===================== -->
+  <section class="view" id="view-tenant-form" hidden>
+    <header class="topbar">
+      <button class="text-btn" data-back="tenants">‹ Cancel</button>
+      <h1 class="page-title small" id="form-title">Add tenant</h1>
+      <button class="text-btn accent" id="btn-save-tenant">Save</button>
+    </header>
+
+    <form id="tenant-form" class="ledger-form">
+      <label>Full name
+        <input type="text" id="f-name" required placeholder="e.g. Ananya Rao">
+      </label>
+      <label>Phone
+        <input type="tel" id="f-phone" placeholder="10-digit mobile number">
+      </label>
+      <label>Email
+        <input type="email" id="f-email" placeholder="optional">
+      </label>
+      <label>ID proof number
+        <input type="text" id="f-idproof" placeholder="Aadhaar / PAN / Passport no.">
+      </label>
+      <label>Property
+        <select id="f-property"></select>
+      </label>
+      <label>Unit / flat no.
+        <input type="text" id="f-unit" placeholder="e.g. B-204">
+      </label>
+      <label>Monthly rent (₹)
+        <input type="number" id="f-rent" min="0" placeholder="0">
+      </label>
+      <label>Rent due day of month
+        <input type="number" id="f-dueday" min="1" max="31" value="5">
+      </label>
+      <label>Security deposit (₹)
+        <input type="number" id="f-deposit" min="0" placeholder="0">
+      </label>
+      <label>Lease start
+        <input type="date" id="f-leasestart">
+      </label>
+      <label>Lease end
+        <input type="date" id="f-leaseend">
+      </label>
+    </form>
+  </section>
+
+  <!-- ===================== PAYMENTS ===================== -->
+  <section class="view" id="view-payments" hidden>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow-ledger">Ledger</p>
+        <h1 class="page-title">Payments</h1>
+      </div>
+    </header>
+    <div class="filter-row" id="payment-month-row"></div>
+    <div id="payments-list" class="payment-list"></div>
+    <div class="empty-state" id="payments-empty" hidden>
+      <p class="empty-title">No payments logged</p>
+      <p class="empty-body">Payments you record against tenants appear here.</p>
+    </div>
+    <button class="ghost-btn" id="btn-export-csv">Export all data (CSV)</button>
+  </section>
+
+  <!-- ===================== PROPERTIES ===================== -->
+  <section class="view" id="view-properties" hidden>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow-ledger">Portfolio</p>
+        <h1 class="page-title">Properties</h1>
+      </div>
+      <button class="icon-btn" id="btn-add-property" aria-label="Add property">+</button>
+    </header>
+    <div id="properties-list" class="tenant-list"></div>
+    <div class="empty-state" id="properties-empty" hidden>
+      <p class="empty-title">No properties yet</p>
+      <p class="empty-body">Add a property so you can assign tenants to it.</p>
+    </div>
+  </section>
+
+  <!-- Bottom navigation -->
+  <nav class="tabbar">
+    <button class="tab active" data-view="dashboard">
+      <span class="tab-icon">⌂</span><span>Overview</span>
+    </button>
+    <button class="tab" data-view="tenants">
+      <span class="tab-icon">☰</span><span>Tenants</span>
+    </button>
+    <button class="tab-fab" id="btn-add-tenant" aria-label="Add tenant">+</button>
+    <button class="tab" data-view="payments">
+      <span class="tab-icon">$</span><span>Payments</span>
+    </button>
+    <button class="tab" data-view="properties">
+      <span class="tab-icon">▤</span><span>Properties</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ===================== MODALS ===================== -->
+<div class="modal-backdrop" id="modal-backdrop" hidden>
+  <div class="modal" id="modal-property">
+    <h2>Add property</h2>
+    <label>Property name
+      <input type="text" id="mp-name" placeholder="e.g. Sunview Apartments">
+    </label>
+    <label>Address
+      <input type="text" id="mp-address" placeholder="optional">
+    </label>
+    <div class="modal-actions">
+      <button class="text-btn" id="mp-cancel">Cancel</button>
+      <button class="text-btn accent" id="mp-save">Add</button>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-payment" hidden>
+    <h2>Record payment</h2>
+    <label>Amount (₹)
+      <input type="number" id="mpay-amount" min="0">
+    </label>
+    <label>Date
+      <input type="date" id="mpay-date">
+    </label>
+    <label>For month
+      <input type="month" id="mpay-month">
+    </label>
+    <label>Method
+      <select id="mpay-method">
+        <option>Cash</option>
+        <option>UPI</option>
+        <option>Bank transfer</option>
+        <option>Cheque</option>
+        <option>Other</option>
+      </select>
+    </label>
+    <div class="modal-actions">
+      <button class="text-btn" id="mpay-cancel">Cancel</button>
+      <button class="text-btn accent" id="mpay-save">Save</button>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-note" hidden>
+    <h2>Add note</h2>
+    <label>Note
+      <textarea id="mnote-text" rows="4" placeholder="Maintenance request, reminder, complaint…"></textarea>
+    </label>
+    <div class="modal-actions">
+      <button class="text-btn" id="mnote-cancel">Cancel</button>
+      <button class="text-btn accent" id="mnote-save">Save</button>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-confirm" hidden>
+    <h2 id="confirm-title">Remove tenant?</h2>
+    <p class="confirm-body" id="confirm-body">This can't be undone.</p>
+    <div class="modal-actions">
+      <button class="text-btn" id="confirm-cancel">Cancel</button>
+      <button class="text-btn danger" id="confirm-ok">Remove</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>

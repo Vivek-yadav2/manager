@@ -1,0 +1,6 @@
+{
+  "appId": "com.keyhold.tenantmanager",
+  "appName": "Keyhold",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}
