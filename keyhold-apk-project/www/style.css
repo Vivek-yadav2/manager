@@ -321,6 +321,7 @@ input,select,textarea{font-family:inherit;}
   display:flex; align-items:flex-end;
   z-index:50;
 }
+.modal-backdrop[hidden]{ display:none; }
 .modal{
   width:100%;
   background:var(--paper);
