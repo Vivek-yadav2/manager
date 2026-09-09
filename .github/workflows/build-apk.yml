@@ -12,47 +12,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      # Pointed NPM to the correct parent directory containing your package.json
-      - name: Install dependencies
-        working-directory: keyhold-apk-project
-        run: npm install --yes --no-audit --no-fund
+      - name: Grant execute permission for gradlew
+        run: chmod +x keyhold-apk-project/android/gradlew
 
-      # Pointed Web Build to the correct parent directory
-      - name: Build web application
-        working-directory: keyhold-apk-project
-        run: npm run build --if-present
-
-      # Pointed Capacitor Sync to the correct parent directory
-      - name: Sync Capacitor Android
-        working-directory: keyhold-apk-project
-        run: npx cap sync android --confirm
-
-      # Compile the optimized native Android app binaries
       - name: Build debug APK
         working-directory: keyhold-apk-project/android
-        run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug \
-            --no-daemon \
-            --parallel \
-            --max-workers=$(nproc)
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
