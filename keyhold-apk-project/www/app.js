@@ -212,11 +212,34 @@ function renderPropertiesList() {
     const row = document.createElement('div');
     row.className = 'property-row';
     row.innerHTML = `
-      <div class="pname">${escapeHtml(p.name)}</div>
-      ${p.address ? `<div class="paddr">${escapeHtml(p.address)}</div>` : ''}
-      <div class="pmeta">${count} tenant${count === 1 ? '' : 's'}</div>
+      <div class="prop-top">
+        <div>
+          <div class="pname">${escapeHtml(p.name)}</div>
+          ${p.address ? `<div class="paddr">${escapeHtml(p.address)}</div>` : ''}
+          <div class="pmeta">${count} tenant${count === 1 ? '' : 's'}</div>
+        </div>
+        <button class="prop-delete" aria-label="Remove property" data-id="${p.id}">×</button>
+      </div>
     `;
     list.appendChild(row);
+  });
+  list.querySelectorAll('.prop-delete').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      const p = getProperty(id);
+      if (!p) return;
+      const count = state.tenants.filter(t => t.propertyId === id).length;
+      const body = count > 0
+        ? `${count} tenant${count === 1 ? '' : 's'} assigned to this property will be unlinked (kept, but marked as no property).`
+        : "This can't be undone.";
+      openConfirm(`Remove ${p.name}?`, body, () => {
+        state.tenants.forEach(t => { if (t.propertyId === id) t.propertyId = null; });
+        state.properties = state.properties.filter(x => x.id !== id);
+        saveState();
+        render();
+        toast('Property removed');
+      });
+    });
   });
 }
 
