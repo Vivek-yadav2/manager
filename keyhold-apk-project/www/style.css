@@ -165,9 +165,21 @@ input,select,textarea{font-family:inherit;}
 
 /* property row */
 .property-row{ display:block; padding:14px 0; border-bottom:1px solid var(--line); cursor:default; }
+.property-row .prop-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
 .property-row .pname{ font-weight:600; font-size:15px; }
 .property-row .paddr{ color:var(--text-soft); font-size:13px; margin-top:2px; }
 .property-row .pmeta{ color:var(--text-soft); font-size:12.5px; margin-top:6px; }
+.prop-delete{
+  flex:none;
+  width:28px; height:28px;
+  border-radius:50%;
+  border:1px solid var(--line);
+  background:transparent;
+  color:var(--rust);
+  font-size:16px;
+  line-height:1;
+  cursor:pointer;
+}
 
 /* ---- search / filters ---- */
 .search-row{ margin-bottom:12px; }
